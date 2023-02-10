@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "eyereasoner": "2.10.0",
+    "lodash.flatten": "^4.4.0",
+    "rdflib": "^2.2.25"
+  }
+}
