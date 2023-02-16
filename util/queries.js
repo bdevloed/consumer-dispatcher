@@ -191,6 +191,10 @@ export async function distpatch_all(graph, types) {
   await updateSudo(
     initial_dispatch_query(graph, types),
     {
+      // no extraheaders
+    },
+    {
       sparqlEndpoint: INITIAL_DISPATCH_ENDPOINT
-    });
+    }
+  );
 }
