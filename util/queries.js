@@ -1,14 +1,23 @@
 import { sparqlEscapeUri, sparqlEscapeString, sparqlEscapeDateTime, uuid } from "mu";
 import { query, update } from "mu";
+import { querySudo, updateSudo } from "@lblod/mu-auth-sudo";
 
 import {
   BATCH_SIZE,
   SLEEP_BETWEEN_BATCHES,
   MAX_ATTEMPTS,
-  SLEEP_TIME_ON_FAIL
+  SLEEP_TIME_ON_FAIL,
+  INGEST_GRAPH,
+  INITIAL_DISPATCH_ENDPOINT
 } from "../config";
 
-import { PREFIXES } from "../constants";
+import {
+  PREFIXES,
+  STATUS_BUSY,
+  STATUS_SCHEDULED,
+  STATUS_SUCCESS,
+  STATUS_FAILED,
+} from "../constants";
 
 const CREATOR = 'http://lblod.data.gift/services/loket-consumer-dispatcher-service';
 
@@ -42,18 +51,20 @@ WHERE {
   ?subject a ?type
 }`
 
-// TODO: configurable initiall sync uris, handle failed initial syncs
-export const initial_syncs_done_query = (operation) => `
+const values_template = (variable, values) => values ? `
+VALUES ?${variable} {
+  ${Array.isArray(values) ? values.map(v => sparqlEscapeUri(v)).join('\n') : sparqlEscapeUri(values)}
+ }` : '';
+
+export const operation_status_query = (operation, status) => `
 ${PREFIXES}
 SELECT DISTINCT ?s ?created WHERE {
-  VALUES ?operation {
-    ${sparqlEscapeUri(operation)}
-  }
+  ${values_template('operation', operation)}
+  ${values_template('status', status)}
   ?s a <http://vocab.deri.ie/cogs#Job> ;
     task:operation ?operation ;
-    adms:status <http://redpencil.data.gift/id/concept/JobStatus/success> ;
+    adms:status ?status ;
     dct:created ?created.
-
 }
 ORDER BY DESC(?created)
 LIMIT 1`
@@ -108,15 +119,21 @@ export async function all_initial_syncs_done() {
       'http://redpencil.data.gift/id/jobs/concept/JobOperation/deltas/consumer/initialSync/leidinggevenden',
       'http://redpencil.data.gift/id/jobs/concept/JobOperation/deltas/consumer/initialSync/mandatarissen'
     ]) {
-      const result = await query(initial_syncs_done_query(operation));
+      const result = await querySudo(operation_status_query(operation, STATUS_SUCCESS));
+
+      console.log(`Result for ${operation}: ${JSON.stringify(result)} `);
+
       const initial_sync_done = !!(result && result.results.bindings.length);
       if (!initial_sync_done) {
+        console.log(`Initial sync for ${operation} not done yet.`);
         return false;
+      } else {
+        console.log(`Initial sync for ${operation} done.`);
       }
     }
     return true;
   } catch (e) {
-    const error_message = `Error while checking if initial syncs are done: ${e.message ? e.message : e}`;
+    const error_message = `Error while checking if initial syncs are done: ${e.message ? e.message : e} `;
     console.log(error_message);
     sendErrorAlert({
       message: error_message
@@ -153,4 +170,27 @@ export async function sendErrorAlert({ message, detail, reference }) {
   } catch (e) {
     console.error(`[WARN] Something went wrong while trying to store an error.\nMessage: ${e}\nQuery: ${q}`);
   }
+}
+
+const initial_dispatch_query = (graph, types) => `
+INSERT {
+  GRAPH ${sparqlEscapeUri(graph)} {
+    ?s ?p ?o.
+  }
+}
+WHERE {
+  GRAPH ${sparqlEscapeUri(INGEST_GRAPH)} {
+    ${values_template('type', types)}
+    ?s
+      a ?type;
+      ?p ?o.
+  }
+}`
+// Directly execute the query - bypassing mu-auth - when DIRECT_DATABASE_ENDPOINT is set
+export async function initial_dispatch(graph, types) {
+  await updateSudo(
+    initial_dispatch_query(graph, types),
+    {
+      sparqlEndpoint: INITIAL_DISPATCH_ENDPOINT
+    });
 }
