@@ -187,7 +187,7 @@ WHERE {
   }
 }`
 // Directly execute the query - bypassing mu-auth - when DIRECT_DATABASE_ENDPOINT is set
-export async function initial_dispatch(graph, types) {
+export async function distpatch_all(graph, types) {
   await updateSudo(
     initial_dispatch_query(graph, types),
     {
