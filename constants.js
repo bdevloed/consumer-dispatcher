@@ -15,6 +15,7 @@ export const STATUS_SUCCESS = 'http://redpencil.data.gift/id/concept/JobStatus/s
 export const STATUS_FAILED = 'http://redpencil.data.gift/id/concept/JobStatus/failed';
 
 
+export const JOB_URI_PREFIX = 'http://redpencil.data.gift/id/jobs/';
 export const TASK_URI_PREFIX = 'http://redpencil.data.gift/id/task/';
 export const ERROR_URI_PREFIX = 'http://redpencil.data.gift/id/jobs/error/';
 
