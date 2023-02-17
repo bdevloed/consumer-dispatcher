@@ -1,7 +1,7 @@
 export const dispatch_config =
   [
     {
-      graph: "http://mu.semte.ch/graphs/test",
+      graph: "http://mu.semte.ch/graphs/organisatieportaal",
       types: [
         "http://data.lblod.info/vocabularies/contacthub/AgentInPositie",
         "http://data.lblod.info/vocabularies/leidinggevenden/Bestuursfunctie",

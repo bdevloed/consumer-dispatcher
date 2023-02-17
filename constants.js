@@ -18,6 +18,8 @@ export const STATUS_FAILED = 'http://redpencil.data.gift/id/concept/JobStatus/fa
 export const JOB_URI_PREFIX = 'http://redpencil.data.gift/id/jobs/';
 export const TASK_URI_PREFIX = 'http://redpencil.data.gift/id/task/';
 export const ERROR_URI_PREFIX = 'http://redpencil.data.gift/id/jobs/error/';
+export const DISPATCH_ERROR_TYPE = 'http://redpencil.data.gift/vocabularies/dispatcher/Error';
+
 
 export const PREFIXES = `
   PREFIX mu: <http://mu.semte.ch/vocabularies/core/>

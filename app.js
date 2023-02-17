@@ -3,16 +3,14 @@ import { app } from "mu";
 import { Delta } from "./lib/delta";
 import { ProcessingQueue } from "./lib/processing-queue";
 import { Prerequisite } from "./lib/prerequisite";
+import { Dispatcher } from "./lib/dispatcher";
 
-const processSubjectsQueue = new ProcessingQueue('loket-consumer-dispatch-queue', {
+const queue = new ProcessingQueue('loket-consumer-dispatch-queue', {
   prerequisite: new Prerequisite()
 });
 
+const dispatcher = new Dispatcher('loket-consumer-dispatcher');
 
-
-import {
-  RDF_TYPE
-} from './constants'
 
 // import { ProcessingQueue } from './lib/processing-queue';
 // import {
@@ -59,7 +57,17 @@ app.get("/", async function (req, res) {
 });
 
 app.post("/delta", async function (req, res) {
-  // TODO: send 204 for empty - rewrite Delta construction
-  processSubjectsQueue.addJob(() => dispatch(Delta.create(req.body)));
+  const delta = new Delta(req.body);
+
+  if (!delta.inserts.length) {
+    console.log(
+      "Delta does not contain any insertions. Nothing should happen here. Consumer handles deletions."
+    );
+    return res.status(204).send();
+  }
+
+  console.log("Received delta. Adding it to the processing queue...");
+  queue.addJob(() => dispatcher.dispatch(delta));
+
   return res.status(200).send();
 });
