@@ -56,6 +56,14 @@ app.get("/", async function (req, res) {
   res.send("Hello from the op consumer-filter service!");
 });
 
+app.get("/dispatch", async function (req, res) {
+  console.log("Received dispatch request...");
+
+  await dispatcher.execute_dispatch_queries();
+
+  return res.status(200).send();
+});
+
 app.post("/delta", async function (req, res) {
   const delta = new Delta(req.body);
 

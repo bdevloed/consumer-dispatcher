@@ -1,4 +1,5 @@
 export const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+export const MU_UUID = 'http://mu.semte.ch/vocabularies/core/uuid';
 
 export const INITIAL_DISPATCH_JOB_OPERATION = 'http://lblod.data.gift/vocabularies/jobs/InitialDispatchJobOperation';
 export const INITIAL_DISPATCH_TASK_OPERATION = 'http://lblod.data.gift/vocabularies/tasks/InitialDispatchTaskOperation';
